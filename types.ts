@@ -9,6 +9,7 @@ export interface Question {
     E: string;
   };
   correctAnswer: string; // "A", "B", "C", "D", "E"
+  explanation: string;
 }
 
 export interface ExamState {

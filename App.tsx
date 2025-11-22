@@ -5,7 +5,7 @@ import ExamHeader from './components/ExamHeader';
 import QuestionViewer from './components/QuestionViewer';
 import QuestionNavigator from './components/QuestionNavigator';
 import ResultSummary from './components/ResultSummary';
-import { ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Menu, X, AlertTriangle } from 'lucide-react';
 
 const EXAM_DURATION = 150 * 60; // 150 minutes in seconds
 
@@ -19,6 +19,7 @@ const App: React.FC = () => {
   });
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState<'none' | 'finish' | 'quit'>('none');
 
   // Timer Effect
   useEffect(() => {
@@ -50,11 +51,13 @@ const App: React.FC = () => {
     });
   };
 
-  const finishExam = useCallback(() => {
+  // Actions triggered after confirmation
+  const performFinish = useCallback(() => {
     setExamState(prev => ({ ...prev, status: 'finished' }));
+    setActiveModal('none');
   }, []);
 
-  const quitExam = useCallback(() => {
+  const performQuit = useCallback(() => {
     setExamState({
       status: 'intro',
       currentQuestionIndex: 0,
@@ -62,6 +65,7 @@ const App: React.FC = () => {
       markedForReview: [],
       timeLeft: EXAM_DURATION
     });
+    setActiveModal('none');
   }, []);
 
   const handleAnswer = (option: string) => {
@@ -146,12 +150,50 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-slate-50">
+      
+      {/* Custom Confirmation Modal */}
+      {activeModal !== 'none' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 animate-in zoom-in-95 duration-200 scale-100">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${activeModal === 'quit' ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">
+              {activeModal === 'quit' ? 'Sınavdan Çık' : 'Sınavı Bitir'}
+            </h3>
+            <p className="text-slate-600 mb-6 leading-relaxed">
+              {activeModal === 'quit' 
+                ? 'Sınavdan çıkmak istediğinize emin misiniz? Şu ana kadar yaptığınız ilerleme kaydedilmeyecek.' 
+                : 'Sınavı bitirmek ve sonuçlarınızı görmek istediğinize emin misiniz?'}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setActiveModal('none')}
+                className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg font-medium transition-colors"
+              >
+                İptal
+              </button>
+              <button 
+                onClick={activeModal === 'quit' ? performQuit : performFinish}
+                className={`px-4 py-2 text-white rounded-lg font-medium shadow-sm transition-colors ${
+                  activeModal === 'quit' 
+                    ? 'bg-red-600 hover:bg-red-700' 
+                    : 'bg-emerald-600 hover:bg-emerald-700'
+                }`}
+              >
+                {activeModal === 'quit' ? 'Çıkış Yap' : 'Sınavı Bitir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ExamHeader 
         timeLeft={examState.timeLeft}
         totalQuestions={questions.length}
         currentQuestionNumber={examState.currentQuestionIndex + 1}
-        onFinish={finishExam}
-        onQuit={quitExam}
+        onFinish={() => setActiveModal('finish')}
+        onQuit={() => setActiveModal('quit')}
       />
 
       <div className="flex flex-1 overflow-hidden relative">
@@ -223,10 +265,7 @@ const App: React.FC = () => {
                if (examState.currentQuestionIndex < questions.length - 1) {
                  setExamState(prev => ({ ...prev, currentQuestionIndex: prev.currentQuestionIndex + 1 }));
                } else {
-                 // Suggest finishing if it's the last question
-                 if (window.confirm("Son soruya ulaştınız. Sınavı bitirmek ister misiniz?")) {
-                   finishExam();
-                 }
+                 setActiveModal('finish');
                }
             }}
             className={`flex items-center gap-2 px-6 py-2.5 font-medium rounded-lg transition-colors shadow-md ${

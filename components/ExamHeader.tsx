@@ -39,11 +39,7 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({ timeLeft, totalQuestions, curre
       {/* Right Section: Action Buttons */}
       <div className="flex items-center gap-2">
         <button
-          onClick={() => {
-            if (window.confirm("Sınavdan çıkmak istediğinize emin misiniz? İlerlemeniz kaydedilmeyecek ve ana sayfaya döneceksiniz.")) {
-              onQuit();
-            }
-          }}
+          onClick={onQuit}
           className="text-slate-500 hover:text-red-600 hover:bg-red-50 p-2 md:px-3 md:py-2 rounded-md transition-colors flex items-center gap-2"
           title="Sınavdan Çık"
         >
@@ -52,11 +48,7 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({ timeLeft, totalQuestions, curre
         </button>
 
         <button
-          onClick={() => {
-            if (window.confirm("Sınavı bitirmek ve sonucunuzu hesaplamak istediğinize emin misiniz?")) {
-              onFinish();
-            }
-          }}
+          onClick={onFinish}
           className="bg-emerald-600 hover:bg-emerald-700 text-white border border-transparent font-medium px-3 py-1.5 md:px-4 md:py-2 rounded-md transition-colors text-xs md:text-sm flex items-center gap-2 shadow-sm shadow-emerald-200"
         >
           <CheckCircle2 className="w-4 h-4" />
